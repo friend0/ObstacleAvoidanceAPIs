@@ -1,0 +1,37 @@
+name: Check Protobuf Syntax
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  proto-syntax-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install Protobuf Compiler
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
+
+      - name: Install Buf
+        run: |
+          brew install bufbuild/buf/buf
+
+      - name: Buf Lint
+        run: |
+          buf lint
+
+      - name: Validate Protobuf Syntax
+        run: |
+          mkdir -p /tmp/proto_check
+          # Find all .proto files under the 'protos' directory and compile them.
+          for proto in $(find protos -type f -name "*.proto"); do
+              echo "Checking syntax for $proto"
+              protoc --proto_path=protos --python_out=/tmp/proto_check "$proto"
+          done
